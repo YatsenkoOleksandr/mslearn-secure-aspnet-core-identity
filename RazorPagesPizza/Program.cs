@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RazorPagesPizza.Areas.Identity.Data;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using RazorPagesPizza.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,7 @@ builder.Services
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 var app = builder.Build();
 
