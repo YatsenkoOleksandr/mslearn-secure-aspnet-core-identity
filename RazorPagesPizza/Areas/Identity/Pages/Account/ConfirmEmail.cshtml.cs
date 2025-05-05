@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -19,9 +20,14 @@ namespace RazorPagesPizza.Areas.Identity.Pages.Account
     {
         private readonly UserManager<RazorPagesPizzaUser> _userManager;
 
-        public ConfirmEmailModel(UserManager<RazorPagesPizzaUser> userManager)
+        private readonly IConfiguration _configuration;
+
+        public ConfirmEmailModel(
+            UserManager<RazorPagesPizzaUser> userManager,
+            IConfiguration configuration)
         {
             _userManager = userManager;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -46,7 +52,25 @@ namespace RazorPagesPizza.Areas.Identity.Pages.Account
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
             var result = await _userManager.ConfirmEmailAsync(user, code);
             StatusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+
+            if (result.Succeeded)
+            {
+                await AddClaimsAsync(user);
+            }
+
             return Page();
+        }
+
+        private async Task AddClaimsAsync(RazorPagesPizzaUser user)
+        {
+            var adminEmail = _configuration["AdminEmail"] ?? string.Empty;
+            if (string.IsNullOrEmpty(adminEmail))
+            {
+                return;
+            }
+
+            var isAdmin = string.Equals(user.Email, adminEmail, StringComparison.InvariantCultureIgnoreCase);
+            await _userManager.AddClaimAsync(user, new Claim("IsAdmin", isAdmin.ToString()));
         }
     }
 }

@@ -25,6 +25,14 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<QRCodeGenerator>();
 builder.Services.AddSingleton<QRCodeService>();
 
+// Define an authorization policy named 'Admin'
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(
+        "Admin",
+        policy => policy
+            .RequireAuthenticatedUser()
+            .RequireClaim("IsAdmin", bool.TrueString));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
